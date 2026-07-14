@@ -1,0 +1,24 @@
+{
+  "name": "galaxi-info-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GALAXI Info Bot - Discord Information Center bot for roleplay communities",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "deploy-commands": "node deploy-commands.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "discord.js": "^14.26.5",
+    "dotenv": "^17.4.2"
+  },
+  "allowScripts": {
+    "better-sqlite3": true
+  }
+}

@@ -1,0 +1,15 @@
+module.exports = {
+  PANEL_CREATE_INFO: 'panel_create_info',
+  CATEGORY_SELECT: 'info_category_select',
+  MODAL_MAIN: 'info_modal_main',
+  MODAL_FIELD: 'info_modal_field',
+  BTN_ADD_FIELD: 'info_add_field',
+  BTN_TOGGLE_TIMESTAMP: 'info_toggle_timestamp',
+  BTN_CONTINUE_UPLOAD: 'info_continue_upload',
+  BTN_PREVIEW_SEND: 'info_preview_send',
+  BTN_PREVIEW_EDIT: 'info_preview_edit',
+  BTN_PREVIEW_CANCEL: 'info_preview_cancel',
+  CHANNEL_SELECT: 'info_channel_select',
+  MENTION_TYPE_SELECT: 'info_mention_type_select',
+  ROLE_SELECT: 'info_role_select',
+};
