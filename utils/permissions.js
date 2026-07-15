@@ -12,4 +12,12 @@ function canUsePanel(member, allowedRoleId) {
   return false;
 }
 
-module.exports = { isAdministrator, canUsePanel };
+function isModerator(member, moderatorRoleId) {
+  if (isAdministrator(member)) return true;
+  if (moderatorRoleId && member && member.roles && member.roles.cache.has(moderatorRoleId)) {
+    return true;
+  }
+  return false;
+}
+
+module.exports = { isAdministrator, canUsePanel, isModerator };

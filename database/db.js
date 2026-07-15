@@ -18,6 +18,7 @@ db.exec(`
     panel_channel_id TEXT,
     panel_message_id TEXT,
     allowed_role_id TEXT,
+    moderator_role_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -31,6 +32,13 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+// Migrasi ringan untuk database yang dibuat sebelum kolom moderator_role_id ada.
+const existingColumns = db.prepare("PRAGMA table_info(guild_configs)").all().map((col) => col.name);
+if (!existingColumns.includes('moderator_role_id')) {
+  db.exec('ALTER TABLE guild_configs ADD COLUMN moderator_role_id TEXT');
+  logger.info('DATABASE', "Kolom 'moderator_role_id' ditambahkan ke tabel guild_configs.");
+}
 
 logger.info('DATABASE', `SQLite database siap di ${config.databasePath}`);
 

@@ -19,6 +19,14 @@ const setAllowedRoleStmt = db.prepare(`
     updated_at = datetime('now')
 `);
 
+const setModeratorRoleStmt = db.prepare(`
+  INSERT INTO guild_configs (guild_id, moderator_role_id, updated_at)
+  VALUES (@guildId, @roleId, datetime('now'))
+  ON CONFLICT(guild_id) DO UPDATE SET
+    moderator_role_id = @roleId,
+    updated_at = datetime('now')
+`);
+
 function getGuildConfig(guildId) {
   return getConfigStmt.get(guildId) || null;
 }
@@ -31,4 +39,8 @@ function setAllowedRole(guildId, roleId) {
   setAllowedRoleStmt.run({ guildId, roleId });
 }
 
-module.exports = { getGuildConfig, savePanel, setAllowedRole };
+function setModeratorRole(guildId, roleId) {
+  setModeratorRoleStmt.run({ guildId, roleId });
+}
+
+module.exports = { getGuildConfig, savePanel, setAllowedRole, setModeratorRole };

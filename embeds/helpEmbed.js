@@ -13,8 +13,21 @@ function buildHelpEmbed() {
         value: 'Membuat atau memperbarui Panel Info Center di channel ini. **Khusus Administrator.**',
       },
       {
+        name: '/set-moderator @role',
+        value:
+          'Menetapkan role yang boleh menggunakan command moderasi (`' +
+          config.prefix +
+          'clear`). **Khusus Administrator.**',
+      },
+      {
         name: `${config.prefix}help`,
         value: 'Menampilkan pesan bantuan ini.',
+      },
+      {
+        name: `${config.prefix}clear <jumlah>`,
+        value:
+          'Menghapus sejumlah pesan terakhir di channel ini (bebas, sesuai jumlah yang diminta). ' +
+          '**Khusus Administrator atau role yang ditetapkan lewat `/set-moderator`.**',
       },
       {
         name: 'Cara Penggunaan',
