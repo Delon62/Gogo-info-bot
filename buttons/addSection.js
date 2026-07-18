@@ -1,8 +1,8 @@
 const { MessageFlags } = require('discord.js');
-const customIds           = require('../utils/customIds');
-const sessionStore        = require('../database/sessionStore');
-const { buildSessionKey } = require('../utils/sessionKey');
-const { buildMainModal }  = require('../modals/infoModalMain');
+const customIds             = require('../utils/customIds');
+const { buildSectionModal } = require('../modals/infoModalSection');
+const sessionStore          = require('../database/sessionStore');
+const { buildSessionKey }   = require('../utils/sessionKey');
 
 async function execute(interaction) {
   const key     = buildSessionKey(interaction.guildId, interaction.user.id);
@@ -15,7 +15,7 @@ async function execute(interaction) {
     return;
   }
 
-  await interaction.showModal(buildMainModal(session));
+  await interaction.showModal(buildSectionModal());
 }
 
-module.exports = { customId: customIds.BTN_PREVIEW_EDIT, execute };
+module.exports = { customId: customIds.BTN_ADD_SECTION, execute };

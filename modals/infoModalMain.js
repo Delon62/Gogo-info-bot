@@ -1,25 +1,43 @@
-const { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, MessageFlags } = require('discord.js');
-const customIds = require('../utils/customIds');
-const sessionStore = require('../database/sessionStore');
-const { buildSessionKey } = require('../utils/sessionKey');
+const {
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
+  MessageFlags,
+} = require('discord.js');
+const customIds              = require('../utils/customIds');
+const sessionStore           = require('../database/sessionStore');
+const { buildSessionKey }    = require('../utils/sessionKey');
 const { validateMainFields } = require('../utils/validators');
 const { resolveColor, colorChoicesText } = require('../utils/colors');
-const config = require('../config');
+const config                 = require('../config');
 const { buildBuilderPayload } = require('../handlers/builderFlow');
 
+/**
+ * Membangun modal utama pembuatan informasi.
+ * Judul wajib; deskripsi, footer, warna, dan thumbnail opsional.
+ */
 function buildMainModal(session = {}) {
-  const modal = new ModalBuilder().setCustomId(customIds.MODAL_MAIN).setTitle('Buat Informasi - Data Utama');
+  const modal = new ModalBuilder()
+    .setCustomId(customIds.MODAL_MAIN)
+    .setTitle('Buat Informasi — Data Utama');
 
-  const titleInput = new TextInputBuilder().setCustomId('title').setLabel('Judul').setStyle(TextInputStyle.Short).setMaxLength(256).setRequired(true);
+  const titleInput = new TextInputBuilder()
+    .setCustomId('title')
+    .setLabel('Judul (wajib)')
+    .setStyle(TextInputStyle.Short)
+    .setMaxLength(256)
+    .setRequired(true);
   if (session.title) titleInput.setValue(session.title);
 
-  const descriptionInput = new TextInputBuilder()
+  const descInput = new TextInputBuilder()
     .setCustomId('description')
-    .setLabel('Deskripsi')
+    .setLabel('Deskripsi (opsional)')
+    .setPlaceholder('Biarkan kosong jika tidak diperlukan.')
     .setStyle(TextInputStyle.Paragraph)
     .setMaxLength(4000)
-    .setRequired(true);
-  if (session.description) descriptionInput.setValue(session.description);
+    .setRequired(false);
+  if (session.description) descInput.setValue(session.description);
 
   const footerInput = new TextInputBuilder()
     .setCustomId('footer')
@@ -32,7 +50,7 @@ function buildMainModal(session = {}) {
   const colorInput = new TextInputBuilder()
     .setCustomId('color')
     .setLabel('Warna Embed (opsional)')
-    .setPlaceholder('biru/merah/hijau/hex/random')
+    .setPlaceholder('biru / merah / hijau / hex / random')
     .setStyle(TextInputStyle.Short)
     .setMaxLength(20)
     .setRequired(false);
@@ -49,7 +67,7 @@ function buildMainModal(session = {}) {
 
   modal.addComponents(
     new ActionRowBuilder().addComponents(titleInput),
-    new ActionRowBuilder().addComponents(descriptionInput),
+    new ActionRowBuilder().addComponents(descInput),
     new ActionRowBuilder().addComponents(footerInput),
     new ActionRowBuilder().addComponents(colorInput),
     new ActionRowBuilder().addComponents(thumbnailInput),
@@ -60,16 +78,18 @@ function buildMainModal(session = {}) {
 
 async function execute(interaction) {
   const key = buildSessionKey(interaction.guildId, interaction.user.id);
-  let session = sessionStore.getSession(key);
-  if (!session) {
-    session = { guildId: interaction.guildId, userId: interaction.user.id, fields: [], timestamp: false };
-  }
+  let session = sessionStore.getSession(key) ?? {
+    guildId:   interaction.guildId,
+    userId:    interaction.user.id,
+    sections:  [],
+    timestamp: false,
+  };
 
-  const title = interaction.fields.getTextInputValue('title').trim();
+  const title       = interaction.fields.getTextInputValue('title').trim();
   const description = interaction.fields.getTextInputValue('description').trim();
-  const footer = interaction.fields.getTextInputValue('footer').trim();
-  const colorRaw = interaction.fields.getTextInputValue('color').trim();
-  const thumbnail = interaction.fields.getTextInputValue('thumbnail').trim();
+  const footer      = interaction.fields.getTextInputValue('footer').trim();
+  const colorRaw    = interaction.fields.getTextInputValue('color').trim();
+  const thumbnail   = interaction.fields.getTextInputValue('thumbnail').trim();
 
   const resolvedColor = resolveColor(colorRaw, config.defaultEmbedColor);
   const errors = validateMainFields({ title, description, footer, thumbnail });
@@ -82,14 +102,14 @@ async function execute(interaction) {
     return;
   }
 
-  session.title = title;
-  session.description = description;
-  session.footer = footer || null;
-  session.colorInputRaw = colorRaw || null;
-  session.color = resolvedColor;
-  session.thumbnail = thumbnail || null;
-  session.fields = session.fields || [];
-  session.timestamp = session.timestamp || false;
+  session.title        = title;
+  session.description  = description || null;
+  session.footer       = footer      || null;
+  session.colorInputRaw = colorRaw   || null;
+  session.color        = resolvedColor;
+  session.thumbnail    = thumbnail   || null;
+  session.sections     = session.sections  || [];
+  session.timestamp    = session.timestamp || false;
 
   sessionStore.setSession(key, session.guildId, session.userId, session);
 

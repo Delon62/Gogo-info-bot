@@ -1,14 +1,19 @@
-const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
+// Format gambar yang diizinkan untuk upload
+const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+const ALLOWED_IMAGE_LABEL = 'PNG, JPG, JPEG, WEBP, atau GIF';
 
 const LIMITS = {
   title: 256,
   description: 4096,
-  fieldName: 256,
-  fieldValue: 1024,
+  sectionName: 256,
+  sectionValue: 1024,
   footer: 2048,
-  maxFields: 25,
+  maxSections: 5, // Maksimal 5 bagian (section)
 };
 
+/**
+ * Memeriksa apakah sebuah string adalah URL yang valid (http/https).
+ */
 function isValidUrl(value) {
   if (!value) return true;
   try {
@@ -19,6 +24,9 @@ function isValidUrl(value) {
   }
 }
 
+/**
+ * Memvalidasi field utama embed (title wajib, description opsional).
+ */
 function validateMainFields({ title, description, footer, thumbnail }) {
   const errors = [];
 
@@ -28,9 +36,8 @@ function validateMainFields({ title, description, footer, thumbnail }) {
     errors.push(`Judul maksimal ${LIMITS.title} karakter.`);
   }
 
-  if (!description || description.trim().length === 0) {
-    errors.push('Deskripsi tidak boleh kosong.');
-  } else if (description.length > LIMITS.description) {
+  // Deskripsi opsional — hanya validasi panjang jika diisi
+  if (description && description.length > LIMITS.description) {
     errors.push(`Deskripsi maksimal ${LIMITS.description} karakter.`);
   }
 
@@ -45,23 +52,33 @@ function validateMainFields({ title, description, footer, thumbnail }) {
   return errors;
 }
 
-function validateField(name, value) {
+/**
+ * Memvalidasi satu bagian (section) embed — nilai boleh kosong.
+ */
+function validateSection(name, value) {
   const errors = [];
-  if (name.length > LIMITS.fieldName) {
-    errors.push(`Nama field maksimal ${LIMITS.fieldName} karakter.`);
+
+  if (name.length > LIMITS.sectionName) {
+    errors.push(`Judul bagian maksimal ${LIMITS.sectionName} karakter.`);
   }
-  if (value.length > LIMITS.fieldValue) {
-    errors.push(`Isi field maksimal ${LIMITS.fieldValue} karakter.`);
+  if (value && value.length > LIMITS.sectionValue) {
+    errors.push(`Isi bagian maksimal ${LIMITS.sectionValue} karakter.`);
   }
+
   return errors;
 }
 
+/**
+ * Memvalidasi lampiran gambar yang di-upload pengguna.
+ * Mendukung PNG, JPG, JPEG, WEBP, dan GIF.
+ */
 function validateImageAttachment(attachment, maxSizeMb) {
   const errors = [];
   const contentType = (attachment.contentType || '').toLowerCase();
   const isAllowedType = ALLOWED_IMAGE_TYPES.some((type) => contentType.startsWith(type));
+
   if (!isAllowedType) {
-    errors.push('Format gambar tidak didukung. Gunakan PNG, JPG, JPEG, atau WEBP.');
+    errors.push(`Format gambar tidak didukung. Gunakan ${ALLOWED_IMAGE_LABEL}.`);
   }
 
   const maxBytes = maxSizeMb * 1024 * 1024;
@@ -74,8 +91,9 @@ function validateImageAttachment(attachment, maxSizeMb) {
 
 module.exports = {
   LIMITS,
+  ALLOWED_IMAGE_LABEL,
   isValidUrl,
   validateMainFields,
-  validateField,
+  validateSection,
   validateImageAttachment,
 };

@@ -1,22 +1,28 @@
 const { Client, GatewayIntentBits, Partials } = require('discord.js');
-const config = require('./config');
-const logger = require('./utils/logger');
-const { loadCommands } = require('./handlers/commandHandler');
-const { loadComponents } = require('./handlers/componentHandler');
-const { loadEvents } = require('./handlers/eventHandler');
+const config  = require('./config');
+const logger  = require('./utils/logger');
+const { loadCommands }    = require('./handlers/commandHandler');
+const { loadComponents }  = require('./handlers/componentHandler');
+const { loadEvents }      = require('./handlers/eventHandler');
 
-require('./database/db'); // Inisialisasi database di awal proses
+// Inisialisasi database lebih awal agar tabel tersedia sebelum event diterima
+require('./database/db');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
   partials: [Partials.Message, Partials.Channel],
 });
 
-const commands = loadCommands();
+const commands   = loadCommands();
 const components = loadComponents();
 
 loadEvents(client, { commands, components });
 
+// Tangkap error global agar bot tidak langsung mati
 process.on('unhandledRejection', (reason) => {
   logger.error('PROCESS', 'Unhandled promise rejection', reason);
 });

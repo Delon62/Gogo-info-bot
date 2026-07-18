@@ -1,34 +1,38 @@
 const db = require('./db');
 
+// --- Prepared statements ---
+
 const upsertPanelStmt = db.prepare(`
-  INSERT INTO guild_configs (guild_id, panel_channel_id, panel_message_id, updated_at)
-  VALUES (@guildId, @channelId, @messageId, datetime('now'))
+  INSERT INTO guild_configs (guild_id, panel_channel_id, panel_message_id)
+  VALUES (@guildId, @channelId, @messageId)
   ON CONFLICT(guild_id) DO UPDATE SET
-    panel_channel_id = @channelId,
-    panel_message_id = @messageId,
-    updated_at = datetime('now')
+    panel_channel_id  = @channelId,
+    panel_message_id  = @messageId,
+    updated_at        = datetime('now')
+`);
+
+const setAllowedRoleStmt = db.prepare(`
+  INSERT INTO guild_configs (guild_id, allowed_role_id)
+  VALUES (@guildId, @roleId)
+  ON CONFLICT(guild_id) DO UPDATE SET
+    allowed_role_id = @roleId,
+    updated_at      = datetime('now')
+`);
+
+const setModeratorRoleStmt = db.prepare(`
+  INSERT INTO guild_configs (guild_id, moderator_role_id)
+  VALUES (@guildId, @roleId)
+  ON CONFLICT(guild_id) DO UPDATE SET
+    moderator_role_id = @roleId,
+    updated_at        = datetime('now')
 `);
 
 const getConfigStmt = db.prepare('SELECT * FROM guild_configs WHERE guild_id = ?');
 
-const setAllowedRoleStmt = db.prepare(`
-  INSERT INTO guild_configs (guild_id, allowed_role_id, updated_at)
-  VALUES (@guildId, @roleId, datetime('now'))
-  ON CONFLICT(guild_id) DO UPDATE SET
-    allowed_role_id = @roleId,
-    updated_at = datetime('now')
-`);
-
-const setModeratorRoleStmt = db.prepare(`
-  INSERT INTO guild_configs (guild_id, moderator_role_id, updated_at)
-  VALUES (@guildId, @roleId, datetime('now'))
-  ON CONFLICT(guild_id) DO UPDATE SET
-    moderator_role_id = @roleId,
-    updated_at = datetime('now')
-`);
+// --- Fungsi publik ---
 
 function getGuildConfig(guildId) {
-  return getConfigStmt.get(guildId) || null;
+  return getConfigStmt.get(guildId) ?? null;
 }
 
 function savePanel(guildId, channelId, messageId) {

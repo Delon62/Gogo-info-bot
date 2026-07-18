@@ -1,8 +1,9 @@
-// In-memory cache for images uploaded during the announcement builder flow.
-// Only holds data for the short lifetime of an active session (max ~30 minutes
-// as a safety net); permanent session fields are persisted in SQLite separately.
+/**
+ * Cache in-memory untuk gambar yang di-upload selama proses pembuatan informasi.
+ * Data otomatis dibersihkan setelah 30 menit (TTL) sebagai pengaman.
+ */
 
-const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 menit
 const cache = new Map();
 
 function setImage(key, buffer, filename) {
@@ -10,13 +11,14 @@ function setImage(key, buffer, filename) {
 }
 
 function getImage(key) {
-  return cache.get(key) || null;
+  return cache.get(key) ?? null;
 }
 
 function clearImage(key) {
   cache.delete(key);
 }
 
+/** Membersihkan entri yang sudah kedaluwarsa dari cache. */
 function cleanupExpired() {
   const now = Date.now();
   for (const [key, value] of cache.entries()) {
@@ -26,6 +28,7 @@ function cleanupExpired() {
   }
 }
 
+// Jalankan pembersihan setiap 10 menit
 setInterval(cleanupExpired, 10 * 60 * 1000);
 
 module.exports = { setImage, getImage, clearImage };

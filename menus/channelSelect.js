@@ -1,26 +1,17 @@
-const { ActionRowBuilder, StringSelectMenuBuilder, MessageFlags } = require('discord.js');
-const customIds = require('../utils/customIds');
-const sessionStore = require('../database/sessionStore');
+const { MessageFlags }   = require('discord.js');
+const customIds          = require('../utils/customIds');
+const sessionStore       = require('../database/sessionStore');
 const { buildSessionKey } = require('../utils/sessionKey');
-
-function buildMentionTypeRow() {
-  const menu = new StringSelectMenuBuilder()
-    .setCustomId(customIds.MENTION_TYPE_SELECT)
-    .setPlaceholder('Pilih mention...')
-    .addOptions(
-      { label: 'Tidak ada', value: 'none', emoji: '🚫' },
-      { label: '@everyone', value: 'everyone', emoji: '📣' },
-      { label: '@here', value: 'here', emoji: '🔔' },
-      { label: 'Role tertentu', value: 'role', emoji: '🏷️' },
-    );
-  return new ActionRowBuilder().addComponents(menu);
-}
+const { buildMentionTypeRow } = require('./mentionTypeSelect');
 
 async function execute(interaction) {
-  const key = buildSessionKey(interaction.guildId, interaction.user.id);
+  const key     = buildSessionKey(interaction.guildId, interaction.user.id);
   const session = sessionStore.getSession(key);
-  if (!session) {
-    await interaction.reply({ content: '⚠️ Sesi tidak ditemukan. Mulai ulang dari panel.', flags: MessageFlags.Ephemeral });
+  if (!session?.title) {
+    await interaction.reply({
+      content: '⚠️ Sesi tidak ditemukan. Mulai ulang dari panel.',
+      flags:   MessageFlags.Ephemeral,
+    });
     return;
   }
 
@@ -28,10 +19,10 @@ async function execute(interaction) {
   sessionStore.setSession(key, session.guildId, session.userId, session);
 
   await interaction.reply({
-    content: '🔔 Pilih jenis mention untuk pengumuman ini:',
+    content:    '🔔 Pilih jenis mention:',
     components: [buildMentionTypeRow()],
-    flags: MessageFlags.Ephemeral,
+    flags:      MessageFlags.Ephemeral,
   });
 }
 
-module.exports = { customId: customIds.CHANNEL_SELECT, execute, buildMentionTypeRow };
+module.exports = { customId: customIds.CHANNEL_SELECT, execute };

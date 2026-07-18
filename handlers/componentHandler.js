@@ -1,17 +1,17 @@
-const fs = require('fs');
-const path = require('path');
+const fs     = require('fs');
+const path   = require('path');
 const { Collection } = require('discord.js');
 const logger = require('../utils/logger');
 
 function loadComponentDir(dirName) {
   const registry = new Collection();
-  const dirPath = path.join(__dirname, '..', dirName);
-  const files = fs.readdirSync(dirPath).filter((file) => file.endsWith('.js'));
+  const dirPath  = path.join(__dirname, '..', dirName);
+  const files    = fs.readdirSync(dirPath).filter((f) => f.endsWith('.js'));
 
   for (const file of files) {
     const component = require(path.join(dirPath, file));
     if (!component?.customId || !component?.execute) {
-      logger.warn('COMPONENT_HANDLER', `File ${dirName}/${file} dilewati karena tidak memiliki 'customId' atau 'execute'.`);
+      logger.warn('COMPONENT_HANDLER', `File ${dirName}/${file} dilewati — tidak memiliki 'customId' atau 'execute'.`);
       continue;
     }
     registry.set(component.customId, component);
@@ -24,8 +24,8 @@ function loadComponentDir(dirName) {
 function loadComponents() {
   return {
     buttons: loadComponentDir('buttons'),
-    menus: loadComponentDir('menus'),
-    modals: loadComponentDir('modals'),
+    menus:   loadComponentDir('menus'),
+    modals:  loadComponentDir('modals'),
   };
 }
 

@@ -1,7 +1,7 @@
-const customIds = require('../utils/customIds');
-const sessionStore = require('../database/sessionStore');
+const customIds           = require('../utils/customIds');
+const sessionStore        = require('../database/sessionStore');
 const { buildSessionKey } = require('../utils/sessionKey');
-const imageCache = require('../utils/imageCache');
+const imageCache          = require('../utils/imageCache');
 
 async function execute(interaction) {
   const key = buildSessionKey(interaction.guildId, interaction.user.id);
@@ -9,10 +9,10 @@ async function execute(interaction) {
   imageCache.clearImage(key);
 
   await interaction.update({
-    content: '❌ Pembuatan pengumuman dibatalkan. Semua data telah dihapus.',
-    embeds: [],
+    content:    '❌ Pembuatan pengumuman dibatalkan. Semua data telah dihapus.',
+    embeds:     [],
     components: [],
-    files: [],
+    files:      [],
   });
 }
 

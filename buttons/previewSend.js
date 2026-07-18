@@ -1,6 +1,6 @@
 const { ActionRowBuilder, ChannelSelectMenuBuilder, ChannelType, MessageFlags } = require('discord.js');
-const customIds = require('../utils/customIds');
-const sessionStore = require('../database/sessionStore');
+const customIds          = require('../utils/customIds');
+const sessionStore       = require('../database/sessionStore');
 const { buildSessionKey } = require('../utils/sessionKey');
 
 function buildChannelSelectRow() {
@@ -12,17 +12,20 @@ function buildChannelSelectRow() {
 }
 
 async function execute(interaction) {
-  const key = buildSessionKey(interaction.guildId, interaction.user.id);
+  const key     = buildSessionKey(interaction.guildId, interaction.user.id);
   const session = sessionStore.getSession(key);
-  if (!session || !session.title) {
-    await interaction.reply({ content: '⚠️ Sesi tidak ditemukan. Mulai ulang dari panel.', flags: MessageFlags.Ephemeral });
+  if (!session?.title) {
+    await interaction.reply({
+      content: '⚠️ Sesi tidak ditemukan. Mulai ulang dari panel.',
+      flags:   MessageFlags.Ephemeral,
+    });
     return;
   }
 
   await interaction.reply({
-    content: '📨 Pilih channel tujuan pengumuman:',
+    content:    '📨 Pilih channel tujuan pengumuman:',
     components: [buildChannelSelectRow()],
-    flags: MessageFlags.Ephemeral,
+    flags:      MessageFlags.Ephemeral,
   });
 }
 

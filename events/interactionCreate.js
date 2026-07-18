@@ -1,71 +1,63 @@
-const { Events, MessageFlags } = require('discord.js');
+const { Events, InteractionType } = require('discord.js');
 const logger = require('../utils/logger');
-
-async function safeRespond(interaction, payload) {
-  try {
-    if (interaction.deferred || interaction.replied) {
-      await interaction.followUp(payload);
-    } else {
-      await interaction.reply(payload);
-    }
-  } catch (err) {
-    logger.error('INTERACTION', 'Gagal mengirim respons error ke pengguna', err);
-  }
-}
 
 module.exports = {
   name: Events.InteractionCreate,
   once: false,
-  async execute(interaction, context) {
-    const { commands, components } = context;
 
-    const ageMs = Date.now() - interaction.createdTimestamp;
-    logger.info(
-      'INTERACTION',
-      `Interaksi diterima (customId/command: ${interaction.customId || interaction.commandName}), usia saat diterima: ${ageMs}ms`,
-    );
-
+  async execute(interaction, { commands, components }) {
     try {
+      // Slash commands
       if (interaction.isChatInputCommand()) {
         const command = commands.get(interaction.commandName);
         if (!command) {
-          await safeRespond(interaction, { content: '❌ Command tidak dikenali.', flags: MessageFlags.Ephemeral });
+          logger.warn('INTERACTION', `Slash command tidak ditemukan: ${interaction.commandName}`);
           return;
         }
         await command.execute(interaction);
         return;
       }
 
+      // Tombol (buttons)
       if (interaction.isButton()) {
         const handler = components.buttons.get(interaction.customId);
-        if (!handler) return;
+        if (!handler) {
+          logger.warn('INTERACTION', `Button handler tidak ditemukan: ${interaction.customId}`);
+          return;
+        }
         await handler.execute(interaction);
         return;
       }
 
-      if (interaction.isStringSelectMenu() || interaction.isChannelSelectMenu() || interaction.isRoleSelectMenu()) {
+      // Select menu (string, channel, role)
+      if (interaction.isAnySelectMenu()) {
         const handler = components.menus.get(interaction.customId);
-        if (!handler) return;
+        if (!handler) {
+          logger.warn('INTERACTION', `Menu handler tidak ditemukan: ${interaction.customId}`);
+          return;
+        }
         await handler.execute(interaction);
         return;
       }
 
-      if (interaction.isModalSubmit()) {
+      // Modal submit
+      if (interaction.type === InteractionType.ModalSubmit) {
         const handler = components.modals.get(interaction.customId);
-        if (!handler) return;
+        if (!handler) {
+          logger.warn('INTERACTION', `Modal handler tidak ditemukan: ${interaction.customId}`);
+          return;
+        }
         await handler.execute(interaction);
         return;
       }
     } catch (err) {
-      logger.error(
-        'INTERACTION',
-        `Gagal menangani interaksi (customId/command: ${interaction.customId || interaction.commandName})`,
-        err,
-      );
-      await safeRespond(interaction, {
-        content: '❌ Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi.',
-        flags: MessageFlags.Ephemeral,
-      });
+      logger.error('INTERACTION', `Error saat menangani interaksi: ${interaction.customId ?? interaction.commandName}`, err);
+      const reply = { content: '❌ Terjadi kesalahan. Silakan coba lagi.', flags: 64 };
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply).catch(() => {});
+      } else {
+        await interaction.reply(reply).catch(() => {});
+      }
     }
   },
 };
